@@ -1,0 +1,7 @@
+work/
+outputs/
+.sites-runtime/
+.wrangler/
+.next/
+node_modules/
+.netlify/

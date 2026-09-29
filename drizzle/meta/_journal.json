@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1788801370893,
+      "tag": "0000_bouncy_tombstone",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788802077986,
+      "tag": "0001_flimsy_slayback",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789006815164,
+      "tag": "0002_glorious_pretty_boy",
+      "breakpoints": true
+    }
+  ]
+}

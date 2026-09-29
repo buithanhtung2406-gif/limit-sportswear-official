@@ -1,0 +1,117 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../vendor/shadcn-tailwind-4.13.0.css";
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-gutter-stable {
+  scrollbar-gutter: stable;
+}
+
+:root {
+  --background: #f4fbff;
+  --foreground: #0c4a6e;
+  --card: #ffffff;
+  --card-foreground: #0c4a6e;
+  --popover: #ffffff;
+  --popover-foreground: #0c4a6e;
+  --primary: #0284c7;
+  --primary-foreground: #ffffff;
+  --secondary: #e0f2fe;
+  --secondary-foreground: #075985;
+  --muted: #f0f9ff;
+  --muted-foreground: #64748b;
+  --accent: #e0f2fe;
+  --accent-foreground: #075985;
+  --destructive: #e7000b;
+  --border: #d5edf9;
+  --input: #cbe8f7;
+  --ring: #38bdf8;
+  --chart-1: #0284c7;
+  --chart-2: #38bdf8;
+  --chart-3: #0ea5e9;
+  --chart-4: #7dd3fc;
+  --chart-5: #075985;
+  --radius: 1.25rem;
+  --sidebar: #0c4a6e;
+  --sidebar-foreground: #f0f9ff;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #082f49;
+  --sidebar-accent: #075985;
+  --sidebar-accent-foreground: #f0f9ff;
+  --sidebar-border: #0ea5e9;
+  --sidebar-ring: #7dd3fc;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+body {
+  background: linear-gradient(145deg, #f8fdff 0%, #eff9ff 48%, #f7fcff 100%);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Netlify injects this promotional badge after the app renders. */
+#nl-badge-frame,
+#netlify-drawer,
+[data-netlify-badge],
+iframe#nl-badge-frame,
+iframe[title*="Netlify"],
+iframe[aria-label*="Netlify"] {
+  display: none !important;
+}
+
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+.nut-bieu-tuong { display: grid; height: 2.25rem; width: 2.25rem; place-items: center; border-radius: 9999px; border: 1px solid #bae6fd; background: white; transition: background-color .2s ease, box-shadow .2s ease; }
+.nut-bieu-tuong:hover { background: #e0f2fe; box-shadow: 0 4px 14px rgb(14 165 233 / .14); }
+.nut-bieu-tuong svg { width: 1rem; height: 1rem; }
