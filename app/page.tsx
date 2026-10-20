@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useDashboardUpdates } from "@/lib/use-dashboard-updates";
 import { CalendarDays, ChevronLeft, ChevronRight, CircleDollarSign, PackageSearch, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -16,24 +17,25 @@ type InventorySnapshot = { date: string; skuCount: number; totalUnits: number; l
 type CashExpenseDetail = { id: number | string; date: string; category: string; amount: number };
 type DashboardSettings = { defaultPeriod: "month" | "week"; revenueChart: "line" | "bar" | "area"; channelChart: "cards" | "bar" | "pie"; cityChart: "area" | "bar" | "line"; stockChart: "table" | "bar" | "pie" };
 type DashboardPeriod = { mode: "month" | "week"; start: string; end: string };
-type DashboardData = { month: string; period: DashboardPeriod; dashboardSettings: DashboardSettings; summary: { todayOrders: number; monthOrders: number; monthRevenue: number; monthReceived: number; monthExpense: number; estimatedNet: number; productsSold: number; averageOrderValue: number; platformFees: number; cashExpense: number; canceledOrders: number; delivering: number; returns: number; lowStock: number; stockUnits: number }; days: DaySummary[]; cashExpenses: CashExpenseDetail[]; inventory: InventoryItem[]; inventorySnapshotDate: string; inventorySnapshots: InventorySnapshot[]; channelSummary: ChannelSummary[]; citySummary: CitySummary[] };
+type DashboardData = { month: string; period: DashboardPeriod; dashboardSettings: DashboardSettings; summary: { todayOrders: number; monthOrders: number; monthRevenue: number; monthReceived: number; monthExpense: number; capitalIn: number; capitalOut: number; capitalNet: number; estimatedNet: number; productsSold: number; averageOrderValue: number; platformFees: number; cashExpense: number; canceledOrders: number; delivering: number; returns: number; lowStock: number; stockUnits: number }; days: DaySummary[]; cashExpenses: CashExpenseDetail[]; inventory: InventoryItem[]; inventorySnapshotDate: string; inventorySnapshots: InventorySnapshot[]; channelSummary: ChannelSummary[]; citySummary: CitySummary[] };
 const defaultDashboardSettings: DashboardSettings = { defaultPeriod: "month", revenueChart: "line", channelChart: "cards", cityChart: "area", stockChart: "table" };
-const emptyData: DashboardData = { month: "", period: { mode: "month", start: "", end: "" }, dashboardSettings: defaultDashboardSettings, summary: { todayOrders: 0, monthOrders: 0, monthRevenue: 0, monthReceived: 0, monthExpense: 0, estimatedNet: 0, productsSold: 0, averageOrderValue: 0, platformFees: 0, cashExpense: 0, canceledOrders: 0, delivering: 0, returns: 0, lowStock: 0, stockUnits: 0 }, days: [], cashExpenses: [], inventory: [], inventorySnapshotDate: "", inventorySnapshots: [], channelSummary: [], citySummary: [] };
+const emptyData: DashboardData = { month: "", period: { mode: "month", start: "", end: "" }, dashboardSettings: defaultDashboardSettings, summary: { todayOrders: 0, monthOrders: 0, monthRevenue: 0, monthReceived: 0, monthExpense: 0, capitalIn: 0, capitalOut: 0, capitalNet: 0, estimatedNet: 0, productsSold: 0, averageOrderValue: 0, platformFees: 0, cashExpense: 0, canceledOrders: 0, delivering: 0, returns: 0, lowStock: 0, stockUnits: 0 }, days: [], cashExpenses: [], inventory: [], inventorySnapshotDate: "", inventorySnapshots: [], channelSummary: [], citySummary: [] };
 const money = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 });
 const weekdays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
 export default function Dashboard() {
+  const liveRevision = useDashboardUpdates();
   const [month, setMonth] = useState(() => { const now = new Date(); return new Date(now.getFullYear(), now.getMonth(), 1); });
   const [periodMode, setPeriodMode] = useState<"month" | "week">("month");
   const [weekAnchor, setWeekAnchor] = useState(() => new Date().toISOString().slice(0, 10));
   const [preferenceLoaded, setPreferenceLoaded] = useState(false);
   const [data, setData] = useState<DashboardData>(emptyData);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [detail, setDetail] = useState<"orders" | "revenue" | "received" | "expense" | null>(null);
+  const [detail, setDetail] = useState<"orders" | "revenue" | "received" | "expense" | "capital" | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const monthKey = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
-  useEffect(() => { let active = true; setLoading(true); setLoadError(false); fetch(`/api/store?view=dashboard&month=${monthKey}&period=${periodMode}&date=${weekAnchor}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : Promise.reject()).then((next: Partial<DashboardData>) => { if (!active) return; const settings = { ...defaultDashboardSettings, ...(next.dashboardSettings || {}) }; setData({ month: typeof next.month === "string" ? next.month : monthKey, period: next.period || { mode: periodMode, start: `${monthKey}-01`, end: `${monthKey}-31` }, dashboardSettings: settings, summary: { ...emptyData.summary, ...(next.summary || {}) }, days: Array.isArray(next.days) ? next.days : [], cashExpenses: Array.isArray(next.cashExpenses) ? next.cashExpenses : [], inventory: Array.isArray(next.inventory) ? next.inventory : [], inventorySnapshotDate: typeof next.inventorySnapshotDate === "string" ? next.inventorySnapshotDate : "", inventorySnapshots: Array.isArray(next.inventorySnapshots) ? next.inventorySnapshots : [], channelSummary: Array.isArray(next.channelSummary) ? next.channelSummary : [], citySummary: Array.isArray(next.citySummary) ? next.citySummary : [] }); if (!preferenceLoaded) { setPreferenceLoaded(true); setPeriodMode(settings.defaultPeriod); } }).catch(() => { if (active) { setLoadError(true); setData({ ...emptyData, month: monthKey }); } }).finally(() => active && setLoading(false)); return () => { active = false; }; }, [monthKey, periodMode, weekAnchor, preferenceLoaded]);
+  useEffect(() => { let active = true; setLoading(true); setLoadError(false); fetch(`/api/store?view=dashboard&month=${monthKey}&period=${periodMode}&date=${weekAnchor}`, { cache: "no-store" }).then((response) => response.ok ? response.json() : Promise.reject()).then((next: Partial<DashboardData>) => { if (!active) return; const settings = { ...defaultDashboardSettings, ...(next.dashboardSettings || {}) }; setData({ month: typeof next.month === "string" ? next.month : monthKey, period: next.period || { mode: periodMode, start: `${monthKey}-01`, end: `${monthKey}-31` }, dashboardSettings: settings, summary: { ...emptyData.summary, ...(next.summary || {}) }, days: Array.isArray(next.days) ? next.days : [], cashExpenses: Array.isArray(next.cashExpenses) ? next.cashExpenses : [], inventory: Array.isArray(next.inventory) ? next.inventory : [], inventorySnapshotDate: typeof next.inventorySnapshotDate === "string" ? next.inventorySnapshotDate : "", inventorySnapshots: Array.isArray(next.inventorySnapshots) ? next.inventorySnapshots : [], channelSummary: Array.isArray(next.channelSummary) ? next.channelSummary : [], citySummary: Array.isArray(next.citySummary) ? next.citySummary : [] }); if (!preferenceLoaded) { setPreferenceLoaded(true); setPeriodMode(settings.defaultPeriod); } }).catch(() => { if (active) { setLoadError(true); setData({ ...emptyData, month: monthKey }); } }).finally(() => active && setLoading(false)); return () => { active = false; }; }, [monthKey, periodMode, weekAnchor, preferenceLoaded, liveRevision]);
   const byDate = useMemo(() => Object.fromEntries(data.days.map((day) => [day.date, day])), [data.days]);
   const byDay = useMemo(() => Object.fromEntries(data.days.map((day) => [Number(day.date.slice(8, 10)), day])), [data.days]);
   const firstOffset = (new Date(month.getFullYear(), month.getMonth(), 1).getDay() + 6) % 7;
@@ -47,7 +49,7 @@ export default function Dashboard() {
   const series = dateKeys.map((date) => { const day = byDate[date]; const [, monthNumber, dayNumber] = date.split("-"); return { date, label: `${Number(dayNumber)}/${Number(monthNumber)}`, revenue: day?.totalAmount || 0, orders: day?.orderCount || 0 }; }).filter((row) => periodMode === "week" || row.date <= todayKey || data.days.some((day) => day.date === row.date));
   const pending = loading || loadError;
 
-  return <main className="min-h-screen bg-[linear-gradient(145deg,#f8fdff_0%,#eff9ff_48%,#f7fcff_100%)] text-[#0c4a6e]">
+  return <main className="limit-dashboard min-h-screen bg-[linear-gradient(145deg,#f8fdff_0%,#eff9ff_48%,#f7fcff_100%)] text-[#0c4a6e]">
     <header className="border-b border-white/40 bg-[linear-gradient(110deg,#0c4a6e_0%,#075985_55%,#0369a1_100%)] text-white shadow-[0_10px_35px_rgba(7,89,133,0.14)]"><div className="mx-auto flex max-w-[1500px] px-5 py-5 lg:px-8"><div className="flex items-center gap-4"><div className="grid size-11 place-items-center rounded-2xl bg-[#bae6fd] text-lg font-black text-[#0c4a6e] shadow-inner">LS</div><div><p className="text-lg font-extrabold tracking-tight">LIMIT SPORTSWEAR</p><p className="text-sm text-sky-100/80">Dashboard vận hành</p></div></div></div></header>
     <div className="mx-auto max-w-[1500px] space-y-7 px-5 py-7 lg:px-8">
       <h1 className="text-2xl font-black">Tổng quan cửa hàng</h1>
@@ -61,11 +63,12 @@ export default function Dashboard() {
       </section>
       {loading && <p role="status">Đang tải số liệu...</p>}
       {loadError && <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-700">Không tải được số liệu. Vui lòng tải lại trang.</p>}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <Stat disabled={pending} onClick={() => setDetail("orders")} icon={<ShoppingBag />} label="Đơn trong kỳ" value={pending ? "—" : String(data.summary.monthOrders)} note={`${data.summary.productsSold} sản phẩm · ${data.summary.canceledOrders} đơn hủy`} />
         <Stat disabled={pending} onClick={() => setDetail("revenue")} icon={<CircleDollarSign />} label="Doanh thu" value={pending ? "—" : money.format(data.summary.monthRevenue)} note={`Trung bình ${money.format(data.summary.averageOrderValue)}/đơn`} />
         <Stat disabled={pending} onClick={() => setDetail("received")} icon={<CircleDollarSign />} label="Tiền thực nhận" value={pending ? "—" : money.format(data.summary.monthReceived)} warning={data.summary.monthReceived < 0} />
         <Stat disabled={pending} onClick={() => setDetail("expense")} icon={<CircleDollarSign />} label="Chi phí" value={pending ? "—" : money.format(data.summary.monthExpense)} />
+        <Stat disabled={pending} onClick={() => setDetail("capital")} icon={<CircleDollarSign />} label="Vốn ròng" value={pending ? "—" : money.format(data.summary.capitalNet)} note="Vốn vào − rút vốn trong kỳ" warning={data.summary.capitalNet < 0} />
         <Stat disabled={pending} onClick={() => document.getElementById("inventory-status")?.scrollIntoView({ behavior: "smooth", block: "start" })} icon={<PackageSearch />} label="Tổng tồn kho" value={pending ? "—" : String(data.summary.stockUnits)} note={`${data.summary.lowStock} mã sắp hết`} warning={data.summary.lowStock > 0} />
       </section>
       <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
@@ -92,11 +95,15 @@ export default function Dashboard() {
       <section id="inventory-status" className="scroll-mt-6"><StockSummaryView inventory={pending ? [] : data.inventory} snapshotDate={data.inventorySnapshotDate} type={data.dashboardSettings.stockChart} pending={pending} /></section>
     </div>
     <Sheet open={detail !== null} onOpenChange={(open) => !open && setDetail(null)}><SheetContent className="w-full overflow-y-auto p-0 sm:max-w-3xl">
-      <SheetHeader className="border-b bg-[#f0f9ff] p-6 text-left"><SheetTitle>{detail === "orders" ? "Đơn trong kỳ" : detail === "revenue" ? "Doanh thu" : detail === "received" ? "Cách tính tiền thực nhận" : "Cách tính chi phí"}</SheetTitle><SheetDescription>{periodMode === "week" ? `Tuần ${dateLabel(data.period.start)} – ${dateLabel(data.period.end)}` : `Tháng ${month.getMonth() + 1}/${month.getFullYear()}`}</SheetDescription></SheetHeader>
+      <SheetHeader className="border-b bg-[#f0f9ff] p-6 text-left"><SheetTitle>{detail === "orders" ? "Đơn trong kỳ" : detail === "revenue" ? "Doanh thu" : detail === "received" ? "Cách tính tiền thực nhận" : detail === "capital" ? "Sổ vốn ròng" : "Cách tính chi phí"}</SheetTitle><SheetDescription>{periodMode === "week" ? `Tuần ${dateLabel(data.period.start)} – ${dateLabel(data.period.end)}` : `Tháng ${month.getMonth() + 1}/${month.getFullYear()}`}</SheetDescription></SheetHeader>
       <div className="space-y-5 p-5">{pending ? <p>Số liệu chưa sẵn sàng.</p> : detail === "orders" || detail === "revenue" ? <>
         <p className="text-xl font-black">{detail === "orders" ? `${data.summary.monthOrders} đơn` : money.format(data.summary.monthRevenue)}</p>
         <RevenueChart rows={series} orders={detail === "orders"} type={detail === "orders" ? "bar" : data.dashboardSettings.revenueChart} onDay={(date) => { setDetail(null); setSelectedDate(date); }} />
         <Table><TableHeader><TableRow><TableHead>Ngày</TableHead><TableHead className="text-right">Số đơn</TableHead><TableHead className="text-right">Doanh thu</TableHead></TableRow></TableHeader><TableBody>{series.map((row) => <TableRow key={row.date}><TableCell><button className="font-semibold text-sky-700 underline" onClick={() => { setDetail(null); setSelectedDate(row.date); }}>{row.label}</button></TableCell><TableCell className="text-right">{row.orders}</TableCell><TableCell className="text-right">{money.format(row.revenue)}</TableCell></TableRow>)}</TableBody></Table>
+      </> : detail === "capital" ? <>
+        <p className="rounded-2xl bg-[#f0f9ff] p-4 font-bold">Vốn ròng = Vốn vào − Rút vốn trong kỳ đang xem.</p>
+        <dl className="space-y-4 text-sm"><Flow label="Vốn vào" value={data.summary.capitalIn} /><Flow label="Rút vốn" value={data.summary.capitalOut} /><div className="border-t pt-4"><Flow label="Vốn ròng" value={data.summary.capitalNet} strong /></div></dl>
+        <p className="text-sm text-slate-500">Vốn làm thay đổi dòng tiền, không tính vào doanh thu hay chi phí.</p>
       </> : detail === "expense" ? <>
         <p className="rounded-2xl bg-[#f0f9ff] p-4 font-bold">Chi phí chỉ gồm các khoản chi và phí sàn, không gồm phí vận chuyển.</p>
         <div>
@@ -121,7 +128,7 @@ export default function Dashboard() {
   </main>;
 }
 
-function Stat({ icon, label, value, note, warning = false, onClick, disabled }: { icon: React.ReactNode; label: string; value: string; note?: string; warning?: boolean; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="min-w-0 rounded-3xl border border-[#d8eef9] bg-white/90 p-5 text-left shadow-[0_14px_38px_rgba(14,116,144,0.07)] backdrop-blur transition hover:border-sky-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-60"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-sm font-semibold text-[#64748b]">{label}</p><p className="mt-2 break-words text-2xl font-black tracking-tight">{value}</p></div><div className="grid size-9 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(145deg,#e0f2fe,#f0f9ff)] text-[#0369a1] shadow-inner [&_svg]:size-5">{icon}</div></div>{note && <p className={`mt-4 text-xs font-bold ${warning ? "text-[#b44b08]" : "text-[#0284c7]"}`}>{note}</p>}</button>; }
+function Stat({ icon, label, value, note, warning = false, onClick, disabled }: { icon: React.ReactNode; label: string; value: string; note?: string; warning?: boolean; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="dashboard-stat min-w-0 rounded-3xl border border-[#d8eef9] bg-white/90 p-5 text-left shadow-[0_14px_38px_rgba(14,116,144,0.07)] backdrop-blur transition hover:border-sky-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-60"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-sm font-semibold text-[#64748b]">{label}</p><p className="mt-2 break-words text-2xl font-black tracking-tight">{value}</p></div><div className="grid size-9 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(145deg,#e0f2fe,#f0f9ff)] text-[#0369a1] shadow-inner [&_svg]:size-5">{icon}</div></div>{note && <p className={`mt-4 text-xs font-bold ${warning ? "text-[#b44b08]" : "text-[#0284c7]"}`}>{note}</p>}</button>; }
 type ChartDay = { date: string; label: string; revenue: number; orders: number };
 function RevenueChart({ rows, orders = false, type = "line", onDay }: { rows: ChartDay[]; orders?: boolean; type?: "line" | "bar" | "area"; onDay: (date: string) => void }) {
   const [point, setPoint] = useState<ChartDay | null>(null);

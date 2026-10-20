@@ -1642,6 +1642,9 @@ export async function GET(request: Request) {
     shopeeRevenue +
     monthOrders.reduce((sum, order) => sum + manualOrderRevenue(order), 0);
   const monthExpense = platformFees + cashExpense;
+  const capitalIn = monthCash.filter((entry) => entry.type === "Vốn vào").reduce((sum, entry) => sum + entry.amount, 0);
+  const capitalOut = monthCash.filter((entry) => entry.type === "Rút vốn").reduce((sum, entry) => sum + entry.amount, 0);
+  const capitalNet = capitalIn - capitalOut;
   const monthReceived = monthRevenue - monthExpense;
   const cashExpenses: Array<{
     id: number | string;
@@ -1783,6 +1786,9 @@ export async function GET(request: Request) {
       monthRevenue,
       monthReceived,
       monthExpense,
+      capitalIn,
+      capitalOut,
+      capitalNet,
       estimatedNet: monthReceived,
       productsSold:
         monthOrders.reduce((sum, order) => sum + order.quantity, 0) +

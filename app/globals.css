@@ -115,3 +115,112 @@ button:disabled { cursor: default; }
 .nut-bieu-tuong { display: grid; height: 2.25rem; width: 2.25rem; place-items: center; border-radius: 9999px; border: 1px solid #bae6fd; background: white; transition: background-color .2s ease, box-shadow .2s ease; }
 .nut-bieu-tuong:hover { background: #e0f2fe; box-shadow: 0 4px 14px rgb(14 165 233 / .14); }
 .nut-bieu-tuong svg { width: 1rem; height: 1rem; }
+
+/* Dashboard appearance only; layout and business behavior stay in page.tsx. */
+.limit-dashboard {
+  background: #f5f7fa;
+  color: #182f43;
+  font-family: "Segoe UI", Arial, sans-serif;
+  --primary: #087eaa;
+  --ring: #087eaa;
+  -webkit-font-smoothing: antialiased;
+}
+.limit-dashboard > header {
+  background: #123a50;
+  border-bottom: 3px solid #26b2cd;
+  box-shadow: none;
+}
+.limit-dashboard > header p:first-child { letter-spacing: .025em; }
+.limit-dashboard h1 { font-weight: 700; letter-spacing: -.035em; }
+.limit-dashboard h2 { color: #182f43; font-weight: 650; letter-spacing: -.02em; }
+.limit-dashboard :is(article, section).bg-white {
+  border-color: #e0e7ee;
+  border-radius: 18px;
+  box-shadow: 0 3px 12px rgb(22 45 67 / .035);
+}
+.limit-dashboard .dashboard-stat {
+  border-radius: 18px;
+  border-color: #e0e7ee;
+  background: #fff;
+  box-shadow: 0 3px 12px rgb(22 45 67 / .035);
+  backdrop-filter: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.limit-dashboard .dashboard-stat:hover {
+  border-color: #83b9ce;
+  box-shadow: 0 6px 20px rgb(22 45 67 / .08);
+}
+.limit-dashboard .dashboard-stat p.text-2xl {
+  font-size: clamp(1.5rem, 2.2vw, 1.9rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+.limit-dashboard .dashboard-stat .size-9 {
+  background: #eef7fb;
+  border-radius: 12px;
+  box-shadow: none;
+}
+.limit-dashboard button[data-slot="button"] { border-radius: 10px; font-weight: 600; }
+.limit-dashboard .grid-cols-7 > button {
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px #e5ebf0;
+}
+.limit-dashboard .grid-cols-7 > button:hover {
+  box-shadow: inset 0 0 0 1px #87b8cb, 0 4px 10px rgb(22 45 67 / .06);
+}
+.limit-dashboard input, .limit-dashboard select { border-radius: 10px; }
+.limit-dashboard button:focus-visible { outline: 2px solid #087eaa; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .limit-dashboard button { transition: none; transform: none; }
+}
+
+/* Light visual demo on the existing dashboard structure. */
+.limit-dashboard { background: #f7f8fa; color: #202e3d; }
+.limit-dashboard > header {
+  background: #fff;
+  color: #163b4a;
+  border-bottom: 1px solid #e7ebef;
+}
+.limit-dashboard > header .size-11 {
+  background: #163b4a;
+  color: #fff;
+  box-shadow: none;
+  border-radius: 13px;
+}
+.limit-dashboard > header p:last-child { color: #778594; }
+.limit-dashboard .dashboard-stat { position: relative; overflow: hidden; }
+.limit-dashboard .dashboard-stat::before {
+  content: "";
+  position: absolute;
+  inset: 22px auto 22px 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--stat-accent, #087eaa);
+}
+.limit-dashboard .dashboard-stat:nth-child(1) { --stat-accent: #4579cc; }
+.limit-dashboard .dashboard-stat:nth-child(2) { --stat-accent: #178571; }
+.limit-dashboard .dashboard-stat:nth-child(3) { --stat-accent: #7763b3; }
+.limit-dashboard .dashboard-stat:nth-child(4) { --stat-accent: #bc7a38; }
+.limit-dashboard .dashboard-stat:nth-child(5) { --stat-accent: #087eaa; }
+.limit-dashboard .dashboard-stat:nth-child(6) { --stat-accent: #62748d; }
+.limit-dashboard .dashboard-stat .size-9 {
+  color: var(--stat-accent);
+  background: color-mix(in srgb, var(--stat-accent) 9%, white);
+}
+.limit-dashboard .dashboard-stat p.text-2xl {
+  font-size: clamp(1.65rem, 2.5vw, 2rem);
+  margin-top: 12px;
+}
+.limit-dashboard .dashboard-stat p.text-xs { font-weight: 500; color: #657b8c; }
+.limit-dashboard :is(article, section).bg-white { box-shadow: 0 2px 8px rgb(22 45 67 / .025); }
+.limit-dashboard article .bg-\[\#f0f9ff\] { background: #f6f8fa; }
+.limit-dashboard .grid-cols-7 > button {
+  box-shadow: inset 0 0 0 1px #e7edf2;
+  border-radius: 12px;
+}
+.limit-dashboard .grid-cols-7 > button:has(.bg-\[\#0284c7\]) {
+  box-shadow: inset 0 0 0 2px #087eaa;
+  background: #f2fafd;
+}
+.limit-dashboard .grid-cols-7 > button:hover { border-color: #87b8cb; }

@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "limit-sportswear-official-2413",
+  "account_id": "8c25a74ebbdda2d3af8fcb5dcff8a183",
+  "main": "./dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "assets": {
+    "directory": "./dist/client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "limit-sportswear-migration",
+      "database_id": "77f6efea-cb5e-4f5f-9b2a-91dd59105492"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "DASHBOARD_UPDATES",
+        "class_name": "DashboardUpdates"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "dashboard-updates-v1",
+      "new_sqlite_classes": ["DashboardUpdates"]
+    }
+  ],
+  "workers_dev": true,
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"]
+    }
+  ]
+}

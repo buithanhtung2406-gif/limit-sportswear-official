@@ -2,7 +2,10 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
+export { DashboardUpdates } from "./dashboard-updates";
+
 interface Env {
+  DASHBOARD_UPDATES?: DurableObjectNamespace<import("./dashboard-updates").DashboardUpdates>;
   ASSETS: Fetcher;
   DB: D1Database;
   IMAGES: {
@@ -29,6 +32,13 @@ const worker = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === "/api/dashboard-events") {
+      if (request.method !== "GET" || request.headers.get("Upgrade")?.toLowerCase() !== "websocket") return new Response(null, { status: 426 });
+      if (request.headers.get("Origin") !== url.origin) return new Response(null, { status: 403 });
+      if (!env.DASHBOARD_UPDATES) return new Response(null, { status: 503 });
+      return env.DASHBOARD_UPDATES.get(env.DASHBOARD_UPDATES.idFromName("store")).fetch(request);
+    }
+
     if (url.pathname === "/_vinext/image") {
       const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
       return handleImageOptimization(request, {
@@ -40,7 +50,13 @@ const worker = {
       }, allowedWidths);
     }
 
-    return handler.fetch(request, env, ctx);
+    const response = await handler.fetch(request, env, ctx);
+    // The existing authenticated API completes its save before a notification.
+    // Notification failure must never turn a completed save into a failed save.
+    if (url.pathname === "/api/store" && request.method === "POST" && response.ok && env.DASHBOARD_UPDATES) {
+      ctx.waitUntil(env.DASHBOARD_UPDATES.get(env.DASHBOARD_UPDATES.idFromName("store")).notify().catch(() => console.warn("Dashboard notification unavailable")));
+    }
+    return response;
   },
 };
 

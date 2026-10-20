@@ -13,6 +13,8 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 
 const localBindingConfig = {
   main: "./worker/index.ts",
+  durable_objects: { bindings: [{ name: "DASHBOARD_UPDATES", class_name: "DashboardUpdates" }] },
+  migrations: [{ tag: "dashboard-updates-v1", new_sqlite_classes: ["DashboardUpdates"] }],
   compatibility_flags: ["nodejs_compat"],
   vars: {
     ...(process.env.ADMIN_PASSWORD
