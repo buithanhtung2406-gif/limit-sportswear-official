@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDashboardUpdates } from "@/lib/use-dashboard-updates";
 import { CalendarDays, ChevronLeft, ChevronRight, CircleDollarSign, PackageSearch, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -128,7 +128,53 @@ export default function Dashboard() {
   </main>;
 }
 
-function Stat({ icon, label, value, note, warning = false, onClick, disabled }: { icon: React.ReactNode; label: string; value: string; note?: string; warning?: boolean; onClick: () => void; disabled?: boolean }) { return <button type="button" onClick={onClick} disabled={disabled} className="dashboard-stat min-w-0 rounded-3xl border border-[#d8eef9] bg-white/90 p-5 text-left shadow-[0_14px_38px_rgba(14,116,144,0.07)] backdrop-blur transition hover:border-sky-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-60"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-sm font-semibold text-[#64748b]">{label}</p><p className="mt-2 break-words text-2xl font-black tracking-tight">{value}</p></div><div className="grid size-9 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(145deg,#e0f2fe,#f0f9ff)] text-[#0369a1] shadow-inner [&_svg]:size-5">{icon}</div></div>{note && <p className={`mt-4 text-xs font-bold ${warning ? "text-[#b44b08]" : "text-[#0284c7]"}`}>{note}</p>}</button>; }
+function Stat({ icon, label, value, note, warning = false, onClick, disabled }: { icon: React.ReactNode; label: string; value: string; note?: string; warning?: boolean; onClick: () => void; disabled?: boolean }) {
+  const valueRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const element = valueRef.current;
+    if (!element) return;
+
+    let lastWidth = 0;
+    const fitValue = () => {
+      const width = element.clientWidth;
+      if (!width || width === lastWidth) return;
+      lastWidth = width;
+
+      element.style.fontSize = "";
+      const baseSize = Number.parseFloat(window.getComputedStyle(element).fontSize);
+      if (!baseSize || element.scrollWidth <= width) return;
+
+      let low = 12;
+      let high = baseSize;
+      element.style.fontSize = `${low}px`;
+      if (element.scrollWidth > width) return;
+
+      for (let attempt = 0; attempt < 8; attempt += 1) {
+        const candidate = (low + high) / 2;
+        element.style.fontSize = `${candidate}px`;
+        if (element.scrollWidth <= width) low = candidate;
+        else high = candidate;
+      }
+      element.style.fontSize = `${low}px`;
+    };
+
+    fitValue();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fitValue);
+    observer?.observe(element);
+    const handleWindowResize = () => {
+      lastWidth = 0;
+      fitValue();
+    };
+    window.addEventListener("resize", handleWindowResize);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", handleWindowResize);
+    };
+  }, [value]);
+
+  return <button type="button" onClick={onClick} disabled={disabled} className="dashboard-stat min-w-0 rounded-3xl border border-[#d8eef9] bg-white/90 p-5 text-left shadow-[0_14px_38px_rgba(14,116,144,0.07)] backdrop-blur transition hover:border-sky-300 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-60"><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="text-sm font-semibold text-[#64748b]">{label}</p><p ref={valueRef} title={value} className="mt-2 min-w-0 overflow-hidden whitespace-nowrap text-2xl font-black tracking-tight">{value}</p></div><div className="grid size-9 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(145deg,#e0f2fe,#f0f9ff)] text-[#0369a1] shadow-inner [&_svg]:size-5">{icon}</div></div>{note && <p className={`mt-4 text-xs font-bold ${warning ? "text-[#b44b08]" : "text-[#0284c7]"}`}>{note}</p>}</button>;
+}
 type ChartDay = { date: string; label: string; revenue: number; orders: number };
 function RevenueChart({ rows, orders = false, type = "line", onDay }: { rows: ChartDay[]; orders?: boolean; type?: "line" | "bar" | "area"; onDay: (date: string) => void }) {
   const [point, setPoint] = useState<ChartDay | null>(null);
@@ -182,3 +228,4 @@ function dateLabel(value: string) { const [year, month, day] = value.slice(0, 10
 function Tag({ children, warning = false }: { children: string; warning?: boolean }) { return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${warning ? "bg-[#fff1e8] text-[#b44b08]" : "bg-[#e0f2fe] text-[#0369a1]"}`}>{children}</span>; }
 function dayTone(orderCount: number) { if (orderCount === 1) return "bg-[#fee2e2] hover:bg-[#fecaca]"; if (orderCount === 2) return "bg-[#fef3c7] hover:bg-[#fde68a]"; if (orderCount >= 4) return "bg-[#dcfce7] hover:bg-[#bbf7d0]"; return "bg-white hover:bg-[#f0f9ff]"; }
 function inventoryTone(stock: number) { if (stock === 0) return "bg-[#fee2e2] hover:bg-[#fecaca]"; if (stock < 3) return "bg-[#ffedd5] hover:bg-[#fed7aa]"; if (stock <= 5) return ""; if (stock <= 10) return "bg-[#fef3c7] hover:bg-[#fde68a]"; return "bg-[#dcfce7] hover:bg-[#bbf7d0]"; }
+
