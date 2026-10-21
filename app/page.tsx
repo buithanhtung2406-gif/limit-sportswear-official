@@ -145,10 +145,14 @@ function Stat({ icon, label, value, note, warning = false, onClick, disabled }: 
       const baseSize = Number.parseFloat(window.getComputedStyle(element).fontSize);
       if (!baseSize || element.scrollWidth <= width) return;
 
-      let low = 12;
+      let low = 8;
       let high = baseSize;
       element.style.fontSize = `${low}px`;
-      if (element.scrollWidth > width) return;
+      if (element.scrollWidth > width) {
+        const fittedSize = Math.max(6, (low * width / element.scrollWidth) * 0.98);
+        element.style.fontSize = `${fittedSize}px`;
+        return;
+      }
 
       for (let attempt = 0; attempt < 8; attempt += 1) {
         const candidate = (low + high) / 2;
